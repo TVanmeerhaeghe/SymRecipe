@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\IngredientRepository;
+use Doctrine\ORM\Mapping as ORM;
+//Utilisation du Component Validator de Symfony qui permet de gérer des contraintes pour les envoye en bdd
+use Symfony\Component\Validator\Constraints as Assert;
+
+//Tag ORM, Cette Class est tag comme un entité et est relié a la class Ingredient Repository du dossier Repository
+#[ORM\Entity(repositoryClass: IngredientRepository::class)]
+class Ingredient
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 50)]
+    //Récupére les contraintes de Symfony par le nom Assert
+    //Utilise la contrainte NotNull pour empécher que le champ soit vide
+    #[Assert\NotNull()]
+    //utilise la contrainte Length qui limite le nombre de caractéres
+    #[Assert\Length(min:2,max:50)]
+    private ?string $name = null;
+
+    #[ORM\Column]
+    //Utilise la contrainte NotNull pour empécher que le champ soit vide
+    #[Assert\NotNull()]
+    //Utilise la contrainte Positive pour obliger le nombre rentré a être positif
+    #[Assert\Positive()]
+    //Utilise la contrainte LessThan pour obliger le nombre a être au maximum 200
+    #[Assert\LessThan(200)]
+    private ?float $price = null;
+
+    #[ORM\Column]
+    //Utilise la contrainte NotNull pour empécher que le champ soit vide
+    #[Assert\NotNull()]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPrice(): ?float
+    {
+        return $this->price;
+    }
+
+    public function setPrice(float $price): self
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+}
