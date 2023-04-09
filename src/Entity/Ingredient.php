@@ -2,13 +2,17 @@
 
 namespace App\Entity;
 
-use App\Repository\IngredientRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-//Utilisation du Component Validator de Symfony qui permet de gérer des contraintes pour les envoye en bdd
+use App\Repository\IngredientRepository;
+//Utilisation du Component Validator\Constraints de Symfony qui permet de gérer des contraintes pour les envoye en bdd
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 //Tag ORM, Cette Class est tag comme un entité et est relié a la class Ingredient Repository du dossier Repository
 #[ORM\Entity(repositoryClass: IngredientRepository::class)]
+//Tag UniqueEntity qui permet d'empécher qu'une données ai deux fois le même nom
+#[UniqueEntity('name')]
 class Ingredient
 {
     #[ORM\Id]
@@ -37,6 +41,13 @@ class Ingredient
     //Utilise la contrainte NotNull pour empécher que le champ soit vide
     #[Assert\NotNull()]
     private ?\DateTimeImmutable $createdAt = null;
+
+    //Fonction construct pour l'entité Ingrédient
+    public function __construct()
+    {
+        //A chaque contruction de l'objet on definis le createdAt en tant que DateTime
+        $this->createdAt = new DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {

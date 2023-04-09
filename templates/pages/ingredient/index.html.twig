@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SymRecipe - Mes ingrédients
+{% endblock %}
+
+{% block body %}
+	<div
+		class="container mt-4">
+		{# Condition qui gére le cas ou il n'y pas d'ingrédients présent en bdd #}
+		{% if not ingredients.items is same as([]) %}
+			<h1>Mes ingrédients</h1>
+
+			{# Affiche le message addFlash() Si le formulaire a bien étais envoyer pour l'ajout d'ingrédient #}
+			{% for message in app.flashes('success') %}
+				<div class="alert alert-success mt-4">
+					{{ message }}
+				</div>
+			{% endfor %}
+
+
+			<div class="count mt-4">
+				<h4>
+					Il y a
+					{{ ingredients.getTotalItemCount }}
+					ingrédients au total
+				</h4>
+			</div>
+
+			<table class="table table-hover mt-4">
+				<thead>
+					<tr>
+						<th scope="col">Numéro</th>
+						<th scope="col">Nom</th>
+						<th scope="col">Prix</th>
+						<th scope="col">Date de création</th>
+					</tr>
+				</thead>
+				<tbody>
+					{# Boucle sur les ingrédients passé depuis mon controller #}
+					{% for ingredient in ingredients %}
+						<tr class="table-primary">
+							<th scope="row">{{ingredient.id}}</th>
+							<td>{{ingredient.name}}</td>
+							<td>{{ingredient.price}}€</td>
+							{# Filtre Twig pour gérer la date #}
+							<td>{{ingredient.createdAt|date('d/m/Y')}}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+
+			{# display navigation #}
+			<div class="navigation d-flex justify-content-center mt-4">
+				{{ knp_pagination_render(ingredients) }}
+			</div>
+		{% else %}
+			<h4>Il n'y a pas d'ingrédients</h4>
+		{% endif %}
+	</div>
+{% endblock %}

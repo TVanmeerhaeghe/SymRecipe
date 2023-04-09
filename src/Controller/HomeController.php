@@ -14,6 +14,6 @@ class HomeController extends AbstractController
     public function index(): Response
     {   
         //Methode render() qui  viens de AbstractController et qui renvoie vers un template twig
-        return $this->render('home.html.twig');
+        return $this->render('pages/home.html.twig');
     }
 };
