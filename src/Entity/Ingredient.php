@@ -23,7 +23,7 @@ class Ingredient
     #[ORM\Column(length: 50)]
     //Récupére les contraintes de Symfony par le nom Assert
     //Utilise la contrainte NotNull pour empécher que le champ soit vide
-    #[Assert\NotNull()]
+    #[Assert\NotBlank()]
     //utilise la contrainte Length qui limite le nombre de caractéres
     #[Assert\Length(min:2,max:50)]
     private ?string $name = null;
@@ -88,5 +88,11 @@ class Ingredient
         $this->createdAt = $createdAt;
 
         return $this;
+    }
+
+    //Permet de renvoyer le nom de l'ingrédient a la place de son id dnas les recettes
+    public function __toString()
+    {
+        return $this->name;
     }
 }

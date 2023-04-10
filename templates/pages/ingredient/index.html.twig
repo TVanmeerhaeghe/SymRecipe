@@ -33,7 +33,7 @@
 					<tr>
 						<th scope="col">Numéro</th>
 						<th scope="col">Nom</th>
-						<th scope="col">Prix</th>
+						<th scope="col">Prix €</th>
 						<th scope="col">Date de création</th>
 						<th scope="col">Edition</th>
 						<th scope="col">Suppression</th>
@@ -45,14 +45,14 @@
 						<tr class="table-primary">
 							<th scope="row">{{ingredient.id}}</th>
 							<td>{{ingredient.name}}</td>
-							<td>{{ingredient.price}}€</td>
+							<td>{{ingredient.price}}</td>
 							{# Filtre Twig pour gérer la date #}
 							<td>{{ingredient.createdAt|date('d/m/Y')}}</td>
 							<td>
 								<a href="{{path('ingredient.edit',{id : ingredient.id})}}" class="btn btn-info">Modifier</a>
 							</td>
 							<td>
-								<a href="{{path('ingredient.delete',{id : ingredient.id})}}" class="btn btn-info">Supprimer</a>
+								<a href="{{path('ingredient.delete',{id : ingredient.id})}}" class="btn btn-warning">Supprimer</a>
 							</td>
 						</tr>
 					{% endfor %}
