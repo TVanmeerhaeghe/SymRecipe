@@ -5,20 +5,23 @@ namespace App\DataFixtures;
 //Utilise les namespace nécésssaire a Faker
 use Faker\Factory;
 use Faker\Generator;
-//Utilise le namespace pour récupérer mon ingrédient
+//Utilise le namespace pour récupérer mes entité
 use App\Entity\Ingredient;
 use App\Entity\Recipe;
+use App\Entity\User;
 //En utilisant la classe ObjectManager, on peut interagir avec la base de données en utilisant l'API d'abstraction de la couche d'accès aux données 
 //fournie par Doctrine. Cette API fournit des méthodes pour effectuer des opérations courantes sur la base de données, 
 //telles que l'ajout, la mise à jour et la suppression d'objets, ainsi que des requêtes pour récupérer des données de la base de données.
 use Doctrine\Persistence\ObjectManager;
 //Utilise les fixtures
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
     //Récupére Faker
     private Generator $faker;
+
 
     public function __construct()
     {
@@ -60,6 +63,21 @@ class AppFixtures extends Fixture
             }
 
             $manager->persist($recipe);
+        }
+
+        //Boucle pour crée 10 utilisateurs
+        for ($i=0; $i < 10; $i++) { 
+            $user = new User();
+            $user->setFullName($this->faker->name())
+            ->setPseudo(mt_rand(0,1) === 1 ? $this->faker->firstName() : null)
+            ->setEmail($this->faker->email())
+            ->setRoles(['ROLE_USER'])
+            //Hash le mdp en bdd grace au EntityListener
+            //EN allant sur l'entity User il va voir qu'il y a un tag qui renvoie vers Un ENtityListener et qui va exécuter les fonctions dedans avant de persist
+            ->setPlainPassword('password');
+
+
+            $manager->persist($user);
         }
 
         //flush signale a symfony que les données doivent être envoyer en bdd
