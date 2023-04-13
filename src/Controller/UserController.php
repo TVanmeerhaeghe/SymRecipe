@@ -73,11 +73,11 @@ class UserController extends AbstractController
         if($form->isSubmitted() && $form->isValid()){
             if($hasher->isPasswordValid($user, $form->getData()['plainPassword']))
             {
-                $user->setPassword(
-                    $hasher->hashPassword(
-                        $user,
-                        $form->getData()['newPassword']
-                    )
+                //Modification du updatedAt pour que Symfony comprenne qu'il doit rentrer dans mon EntityListener Afin de pouvoir utiliser mon ENtityListener pour
+                //la Modification du password
+                $user->setUpdatedAt(new \DateTimeImmutable());
+                $user->setPlainPassword(
+                    $form->getData()['newPassword']
                 );
 
                 $manager->persist($user);
