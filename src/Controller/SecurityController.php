@@ -35,6 +35,7 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/inscription', name: 'security.registration', methods:['GET', 'POST'])]
+    //Function qui gére l'inscription
     public function registration(EntityManagerInterface $manager, Request $request): Response
     {
         $user = New User;
