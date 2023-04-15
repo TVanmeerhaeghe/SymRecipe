@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
+//Importe le namespace du repository de mes ingrédients
 use App\Entity\Ingredient;
 use App\Form\IngredientType;
-//Importe le namespace du repository de mes ingrédients
-use App\Repository\IngredientRepository;
 use Doctrine\ORM\EntityManager;
+use App\Repository\IngredientRepository;
 use Doctrine\ORM\EntityManagerInterface;
 //Importe Paginator Interface de Knp
 use Knp\Component\Pager\PaginatorInterface;
@@ -15,10 +15,14 @@ use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+//Import l'annotation IsGranted qui permet de securisé les routes en fonction du role
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class IngredientController extends AbstractController
 {
+    #[IsGranted('ROLE_USER')]
     //Définis la route dans la qu'elle cette fonction seras apeller
     #[Route('/ingredient', name: 'ingredient.index', methods:['GET'])]
     //Fonction pour afficher tous les ingrédients
@@ -27,10 +31,11 @@ class IngredientController extends AbstractController
     public function index(IngredientRepository $repository, PaginatorInterface $paginator, Request $request): Response
     {
         //Definis la variable ingrédients qui contient mon répository des ingrédients appeller dans ma fonction
-        //Utilise la méthode findAll qui récupére tous les éléments de ce ce repositor
+        //Utilise la méthode findBy qui récupére tous les éléments de l'utilisateur courant (Récupéré par le token de securité de Symfony) 
         //Utilise le bundle Paginate qui prend en Param (query, la page de début, le nb d'elements par page)
         $ingredients = $paginator->paginate(
-            $repository->findAll(),
+
+            $repository->findBy(['user'=>$this->getUser()]),
             $request->query->getInt('page', 1),
             10
         );
@@ -39,6 +44,7 @@ class IngredientController extends AbstractController
         return $this->render('pages/ingredient/index.html.twig', ['ingredients' => $ingredients]);
     }
 
+    #[IsGranted('ROLE_USER')]
     #[Route('/ingredient/nouveau', name: 'ingredient.new')]
     //Fonction pour ajouter un igrédient
     public function new(EntityManagerInterface $manager, Request $request) : Response 
@@ -55,6 +61,8 @@ class IngredientController extends AbstractController
         if($form->isSubmitted() && $form->isValid()){
             //Si le form est valide définis la variable ingrédient avec les données du formulaire
             $ingredient = $form->getData();
+            //Set l'ingrédient au moment de la création pour qu'il appertienne a l'utilisateur qui l'a crée
+            $ingredient->setUser($this->getUser());
 
             //Enregistre les données du nouvel ingrédients
             $manager->persist($ingredient);
@@ -75,6 +83,8 @@ class IngredientController extends AbstractController
         return $this->render('pages/ingredient/new.html.twig', ['form' => $form->createView()]);
     }
 
+    //Avec l'annotation Security, verification du Role et verification que l'id de l'user connecté correspond bien a l'id de l'user présente dans l'ingrédient
+    #[Security("is_granted('ROLE_USER') and user === ingredient.getUser()")]
     #[Route('/ingredient/edition/{id}', name: 'ingredient.edit', methods:['GET', 'POST'])]
     //Fonction pour éditer un ingrédient
     //Symfony regarde dans l'url le params qu'on passe et vérifie de lui même dans mon entity si un params existe et le récupére de lui même

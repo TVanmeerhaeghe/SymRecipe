@@ -30,6 +30,22 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {   
+        //Boucle pour crée 10 utilisateurs
+        $users = [];
+        for ($i=0; $i < 10; $i++) { 
+            $user = new User();
+            $user->setFullName($this->faker->name())
+            ->setPseudo(mt_rand(0,1) === 1 ? $this->faker->firstName() : null)
+            ->setEmail($this->faker->email())
+            ->setRoles(['ROLE_USER'])
+            //Hash le mdp en bdd grace au EntityListener
+            //EN allant sur l'entity User il va voir qu'il y a un tag qui renvoie vers Un ENtityListener et qui va exécuter les fonctions dedans avant de persist
+            ->setPlainPassword('password');
+
+            $users[] = $user;
+            $manager->persist($user);
+        }
+
         //Boucle pour crée 50 ingrédients
         $ingredients = [];
         for ($i=0; $i < 50; $i++) { 
@@ -38,7 +54,9 @@ class AppFixtures extends Fixture
             //set ses différentes column avec les données choisies
             //Utilise les méthodes de faker pour générer des fausses données plus réelles
             $ingredient->setName($this->faker->word())
-            ->setPrice(mt_rand(1, 100));
+            ->setPrice(mt_rand(1, 100))
+            //Assigne un utilisateur de notre tableau $users a l'ingrédient de maniére aléatoire en partant de zéro et e allant jusqu'au dernier user du tableau
+            ->setUser($users[mt_rand(0, count($users) - 1)]);
 
             $ingredients[] = $ingredient;
             //persist signale a symfony que les données doivent être enregistré (ajoute l'objet modifié a la liste des objets a envoyer lors du prochain flush)
@@ -55,7 +73,8 @@ class AppFixtures extends Fixture
             ->setDifficulty(mt_rand(0, 1) == 1 ? mt_rand(1, 5) : null)
             ->setDescription($this->faker->text(300))
             ->setPrice(mt_rand(0, 1) == 1 ? mt_rand(1, 1000) : null)
-            ->setIsFavorite(mt_rand(0, 1) == 1 ? true : false);
+            ->setIsFavorite(mt_rand(0, 1) == 1 ? true : false)
+            ->setUser($users[mt_rand(0, count($users) - 1)]);
 
             for ($k=0; $k < mt_rand(5, 15) ; $k++) { 
                 // Ajoute un ingrédient qui viens des fixtures pour les ingrédients au hasard
@@ -63,21 +82,6 @@ class AppFixtures extends Fixture
             }
 
             $manager->persist($recipe);
-        }
-
-        //Boucle pour crée 10 utilisateurs
-        for ($i=0; $i < 10; $i++) { 
-            $user = new User();
-            $user->setFullName($this->faker->name())
-            ->setPseudo(mt_rand(0,1) === 1 ? $this->faker->firstName() : null)
-            ->setEmail($this->faker->email())
-            ->setRoles(['ROLE_USER'])
-            //Hash le mdp en bdd grace au EntityListener
-            //EN allant sur l'entity User il va voir qu'il y a un tag qui renvoie vers Un ENtityListener et qui va exécuter les fonctions dedans avant de persist
-            ->setPlainPassword('password');
-
-
-            $manager->persist($user);
         }
 
         //flush signale a symfony que les données doivent être envoyer en bdd

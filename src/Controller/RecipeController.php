@@ -11,16 +11,19 @@ use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class RecipeController extends AbstractController
 {
+    #[IsGranted('ROLE_USER')]
     #[Route('/recette', name: 'recipe.index', methods:['GET'])]
     //Fonction qui apelle toutes les recettes
     public function index(RecipeRepository $repository, PaginatorInterface $paginator, Request $request): Response
     {
         $recipes = $paginator->paginate(
-            $repository->findAll(),
+            $repository->findBy(['user'=>$this->getUser()]),
             $request->query->getInt('page', 1),
             10
         );
@@ -28,6 +31,7 @@ class RecipeController extends AbstractController
         return $this->render('pages/recipe/index.html.twig', ['recipes' => $recipes]);
     }
 
+    #[IsGranted('ROLE_USER')]
     #[Route('/recette/nouveau', name: 'recipe.new', methods:['GET', 'POST'])]
     //Fonction pour ajouter une recette
     public function new(EntityManagerInterface $manager, Request $request) : Response 
@@ -39,6 +43,7 @@ class RecipeController extends AbstractController
         $form->handleRequest($request);
         if($form->isSubmitted() && $form->isValid()){
             $recipe = $form->getData();
+            $recipe->setUser($this->getUser());
 
             $manager->persist($recipe);
             $manager->flush();
@@ -54,6 +59,7 @@ class RecipeController extends AbstractController
         return $this->render('pages/recipe/new.html.twig', ['form' => $form->createView()]);
     }
 
+    #[Security("is_granted('ROLE_USER') and user === recipe.getUser()")]
     #[Route('/recette/edition/{id}', name: 'recipe.edit', methods:['GET', 'POST'])]
     //Fonction pour éditer une recette
     public function edit( Recipe $recipe, Request $request, EntityManagerInterface $manager): Response

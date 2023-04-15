@@ -17,9 +17,18 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+//stocke les informations d'authentification de l'utilisateur actuel dans l'application Symfony
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class RecipeType extends AbstractType
 {
+    private $token;
+
+    public function __construct(TokenStorageInterface $token)
+    {
+        $this->token = $token;
+    }
+    
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -134,7 +143,11 @@ class RecipeType extends AbstractType
                 'choice_label' => 'name',
                 'query_builder' => function (IngredientRepository $ingredient) {
                     return $ingredient->createQueryBuilder('i')
-                        ->orderBy('i.name', 'ASC');
+                        ->where('i.user = :user')
+                        ->orderBy('i.name', 'ASC')
+                        //SetParameter est utilisée dans Doctrine pour lier une valeur à un paramètre nommé dans une requête SQL
+                        //Get Token récupére les information de l'utilsiateur connecté
+                        ->setParameter('user', $this->token->getToken()->getUser());
                 },
                 'label' => 'Les ingrédients',
                 'label_attr' => [
