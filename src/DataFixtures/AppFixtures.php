@@ -4,11 +4,12 @@ namespace App\DataFixtures;
 
 //Utilise les namespace nécésssaire a Faker
 use Faker\Factory;
-use Faker\Generator;
+use App\Entity\Mark;
 //Utilise le namespace pour récupérer mes entité
-use App\Entity\Ingredient;
-use App\Entity\Recipe;
 use App\Entity\User;
+use Faker\Generator;
+use App\Entity\Recipe;
+use App\Entity\Ingredient;
 //En utilisant la classe ObjectManager, on peut interagir avec la base de données en utilisant l'API d'abstraction de la couche d'accès aux données 
 //fournie par Doctrine. Cette API fournit des méthodes pour effectuer des opérations courantes sur la base de données, 
 //telles que l'ajout, la mise à jour et la suppression d'objets, ainsi que des requêtes pour récupérer des données de la base de données.
@@ -64,6 +65,7 @@ class AppFixtures extends Fixture
         }
 
         //Boucle pour crée 25 recettes
+        $recipes = [];
         for ($j=0; $j < 25; $j++) { 
 
             $recipe = new Recipe();
@@ -74,6 +76,7 @@ class AppFixtures extends Fixture
             ->setDescription($this->faker->text(300))
             ->setPrice(mt_rand(0, 1) == 1 ? mt_rand(1, 1000) : null)
             ->setIsFavorite(mt_rand(0, 1) == 1 ? true : false)
+            ->setIsPublic(mt_rand(0, 1) == 1 ? true : false)
             ->setUser($users[mt_rand(0, count($users) - 1)]);
 
             for ($k=0; $k < mt_rand(5, 15) ; $k++) { 
@@ -81,7 +84,21 @@ class AppFixtures extends Fixture
                 $recipe->addIngredient($ingredients[mt_rand(0, count($ingredients) - 1)]);
             }
 
+            $recipes[] = $recipe;
             $manager->persist($recipe);
+        }
+
+        //Pour chaque recette dans mon tableau recettes
+        foreach ($recipes as $recipe) {
+            //Ajoute entre 0 a 4 note
+            for ($i=0; $i < mt_rand(0,4); $i++) { 
+                $mark = New Mark;
+                $mark->setMark(mt_rand(1,5))
+                ->setUser($users[mt_rand(0, count($users) - 1)])
+                ->setRecipe($recipe);
+
+                $manager->persist($mark);
+            }
         }
 
         //flush signale a symfony que les données doivent être envoyer en bdd

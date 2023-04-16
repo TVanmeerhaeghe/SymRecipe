@@ -4,7 +4,10 @@ namespace App\Controller;
 
 
 use App\Entity\Recipe;
+use App\Entity\Mark;
 use App\Form\RecipeType;
+use App\Form\MarkType;
+use App\Repository\MarkRepository;
 use App\Repository\RecipeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -29,6 +32,63 @@ class RecipeController extends AbstractController
         );
 
         return $this->render('pages/recipe/index.html.twig', ['recipes' => $recipes]);
+    }
+
+    #[Route('/recette/communaute', name: 'recipe.community', methods:['GET'])]
+    //Fonction qu affiche toutes les recette qui sont public
+    public function indexPublic( PaginatorInterface $paginator, RecipeRepository $repository, Request $request): Response
+    {   
+        $recipes = $paginator->paginate(
+            //Apelle la fonction findPublicRecipe du repository Recipe qui permet de trouver les recette public avec du DQL
+            $repository->findPublicRecipe(null),
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        return $this->render('pages/recipe/community.html.twig', ['recipes' => $recipes]);
+    }
+
+    //Vérifie que l'user est connecté et que la recette a la qu'elle il souhaite accéder est publique
+    #[Security("is_granted('ROLE_USER') and recipe.getIsPublic() == true")]
+    #[Route('/recette/{id}', name: 'recipe.show', methods:['GET', 'POST'])]
+    //Function qui affiche une recette en particulier si elle est publique et pour noter cette même recette
+    public function show(Recipe $recipe, Request $request, MarkRepository $markRepository, EntityManagerInterface $manager): Response
+    {
+        $mark = New Mark;
+        $form = $this->createForm(MarkType::class, $mark);
+
+        $form->handleRequest($request);
+        if($form->isSubmitted() && $form->isValid()){
+            $mark->setUser($this->getUser())
+            ->setRecipe($recipe);
+
+            //Permet de récupérer une entité Mark existante si l'utilisateur actuel a déjà noté la recette spécifiée
+            $existingMark = $markRepository->findOneBy([
+                'user' => $this->getUser(),
+                'recipe' => $recipe
+            ]);
+
+            //Si l'utilsiateur ne l'a pas notée persist la note
+            if(!$existingMark){
+                $manager->persist($mark);
+            //Sinon change la note qui est présente en bdd
+            } else {
+                $existingMark->setMark(
+                    $form->getData()->getMark()
+                );
+            }
+
+            $manager->flush();
+
+            $this->addFlash(
+                'success',
+                'Votre note a bien été prise en compte !'
+            );
+
+            return $this->redirectToRoute('recipe.show', ['id' => $recipe->getId()]);
+        }
+
+        return $this->render('pages/recipe/show.html.twig', ['recipe' => $recipe, 'form' => $form->createView()]);
     }
 
     #[IsGranted('ROLE_USER')]
