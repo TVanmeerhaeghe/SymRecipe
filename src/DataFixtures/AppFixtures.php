@@ -9,12 +9,13 @@ use App\Entity\Mark;
 use App\Entity\User;
 use Faker\Generator;
 use App\Entity\Recipe;
-use App\Entity\Ingredient;
+use App\Entity\Contact;
 //En utilisant la classe ObjectManager, on peut interagir avec la base de données en utilisant l'API d'abstraction de la couche d'accès aux données 
 //fournie par Doctrine. Cette API fournit des méthodes pour effectuer des opérations courantes sur la base de données, 
 //telles que l'ajout, la mise à jour et la suppression d'objets, ainsi que des requêtes pour récupérer des données de la base de données.
-use Doctrine\Persistence\ObjectManager;
+use App\Entity\Ingredient;
 //Utilise les fixtures
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -100,6 +101,18 @@ class AppFixtures extends Fixture
                 $manager->persist($mark);
             }
         }
+
+        //Contact
+        for ($i=0; $i < 5; $i++) { 
+            $contact = New Contact;
+            $contact->setFullName($this->faker->name())
+            ->setEmail($this->faker->email())
+            ->setSubject('Demande numéro' . ($i +1))
+            ->setMessage($this->faker->text());
+
+            $manager->persist($contact);
+        }
+
 
         //flush signale a symfony que les données doivent être envoyer en bdd
         $manager->flush();
