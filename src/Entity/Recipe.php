@@ -9,9 +9,12 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: RecipeRepository::class)]
 #[UniqueEntity('name')]
+#[Vich\Uploadable]
 //Ce tag est utilisée pour indiquer à Doctrine que l'entité annotée contient des méthodes de rappel de cycle de vie.
 #[ORM\HasLifecycleCallbacks]
 class Recipe
@@ -25,6 +28,12 @@ class Recipe
     #[Assert\NotBlank()]
     #[Assert\Length(min:2,max:50)]
     private ?string $name = null;
+
+    #[Vich\UploadableField(mapping: 'recipe_images', fileNameProperty: 'imageName')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $imageName = null;
 
     #[ORM\Column(nullable: true)]
     #[Assert\Positive()]
@@ -54,7 +63,7 @@ class Recipe
     private ?bool $isFavorite = null;
 
     #[ORM\Column]
-    private ?bool $isPublic = null;
+    private ?bool $isPublic = false;
 
     #[ORM\Column]
     #[Assert\NotNull()]
@@ -108,6 +117,31 @@ class Recipe
 
         return $this;
     }
+
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageName(?string $imageName): void
+    {
+        $this->imageName = $imageName;
+    }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
+    }
+
 
     public function getTime(): ?int
     {
