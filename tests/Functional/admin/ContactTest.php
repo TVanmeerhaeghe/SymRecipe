@@ -23,7 +23,7 @@ class ContactTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
 
-        $crawler = $client->clickLink('Demandes de contact');
+        $crawler = $client->clickLink('Demande de contact');
 
         $this->assertResponseIsSuccessful();
 
